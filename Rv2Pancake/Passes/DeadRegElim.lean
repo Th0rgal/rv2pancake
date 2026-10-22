@@ -2,6 +2,7 @@ import Rv2Pancake.Spec.RiscvSem
 import Rv2Pancake.Spec.PancakeSem
 import Rv2Pancake.Spec.Equiv
 import Rv2Pancake.Passes.SafePass
+import Rv2Pancake.Passes.SymCheck
 
 namespace Rv2Pancake.Passes
 
@@ -20,14 +21,14 @@ theorem assign_self_equiv (v : VarId) : StmtEquiv (.assign v (.var v)) .skip := 
 def elimSelfAssign : PanProg → PanProg
   | .skip          => .skip
   | .assign v (.var v') => if v == v' then .skip else .assign v (.var v')
-  | .assign v e    => .assign v e
-  | .store a e     => .store a e
+  | .assign v e    => .assign v (simpExp e)
+  | .store a e     => .store (simpExp a) (simpExp e)
   | .seq p1 p2     =>
     match elimSelfAssign p1 with
     | .skip => elimSelfAssign p2
     | p1'   => .seq p1' (elimSelfAssign p2)
-  | .ifElse c t f  => .ifElse c (elimSelfAssign t) (elimSelfAssign f)
-  | .whileLoop c b => .whileLoop c (elimSelfAssign b)
+  | .ifElse c t f  => .ifElse (simpExp c) (elimSelfAssign t) (elimSelfAssign f)
+  | .whileLoop c b => .whileLoop (simpExp c) (elimSelfAssign b)
 
 theorem elimSelfAssign_equiv (p : PanProg) : StmtEquiv p (elimSelfAssign p) := by
   induction p with
@@ -43,9 +44,15 @@ theorem elimSelfAssign_equiv (p : PanProg) : StmtEquiv p (elimSelfAssign p) := b
         simp [assign_self_equiv v st]
       · have hb : (v == v') = false := beq_false_of_ne h
         simp [hb]
-    | load addr => exact StmtEquiv.refl _
-    | binOp op e1 e2 => exact StmtEquiv.refl _
-  | store a e => exact StmtEquiv.refl _
+    | load addr =>
+      intro st
+      simp [elimSelfAssign, execStmt, simpExp, evalExp, evalExp_simpExp]
+    | binOp op e1 e2 =>
+      intro st
+      simp [elimSelfAssign, execStmt, simpExp, evalExp, evalExp_simpBinOp, evalExp_simpExp]
+  | store a e =>
+    intro st
+    simp [elimSelfAssign, execStmt, evalExp_simpExp]
   | seq p1 p2 ih1 ih2 =>
     intro st
     dsimp [elimSelfAssign, execStmt]
@@ -55,6 +62,7 @@ theorem elimSelfAssign_equiv (p : PanProg) : StmtEquiv p (elimSelfAssign p) := b
   | ifElse c t f iht ihf =>
     intro st
     dsimp [elimSelfAssign, execStmt]
+    rw [evalExp_simpExp st c]
     split
     · exact iht st
     · exact ihf st

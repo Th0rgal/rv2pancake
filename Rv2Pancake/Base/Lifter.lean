@@ -24,8 +24,10 @@ def branchCondExp (c : BranchCond) (rs1 rs2 : RegIdx) : PanExp :=
   | .bne  => .binOp .neOp e1 e2
   | .bltu => .binOp .ltU  e1 e2
   | .bgeu => .binOp .eqOp (.binOp .ltU e1 e2) (.const 0)
+  | .blt  => .binOp .ltS  e1 e2
+  | .bge  => .binOp .eqOp (.binOp .ltS e1 e2) (.const 0)
 
-/-- Lift a single RV64I instruction at `addr` into its exact Pancake statement
+/-- Lift a single RV64IM instruction at `addr` into its exact Pancake statement
     (updating registers, memory, and `pcVar`). -/
 def liftInstr (addr : Word) (ins : RVInstr) : PanProg :=
   match ins with
@@ -52,7 +54,7 @@ def liftInstr (addr : Word) (ins : RVInstr) : PanProg :=
   | .jal rd targetPc =>
     .seq (assignReg rd (.const (addr + 4))) (.assign pcVar (.const targetPc))
   | .jalr rd rs1 offset =>
-    let nextPcExp := .binOp .add (regExp rs1) (.const offset)
+    let nextPcExp := .binOp .bitAnd (.binOp .add (regExp rs1) (.const offset)) (.const jalrMask)
     -- Save `nextPc` before clobbering `rd` in case `rd == rs1`
     .seq (.assign pcVar nextPcExp) (assignReg rd (.const (addr + 4)))
   | .ecall =>
@@ -72,7 +74,7 @@ def liftCodeTable (code : List (Word × RVInstr)) : PanProg :=
     .ifElse cond (liftInstr addr ins) (liftCodeTable rest)
 
 /-- Lift a complete `ElfProg` into a structured Pancake program:
-    Initializes `pc := entryPc` and steps the dispatcher while `pc != 0`. -/
+    Steps the dispatcher while `pc != 0`. -/
 def baseLift (prog : ElfProg) : PanProg :=
   let loopCond := .binOp .neOp (.var pcVar) (.const 0)
   .whileLoop loopCond (liftCodeTable prog.code)

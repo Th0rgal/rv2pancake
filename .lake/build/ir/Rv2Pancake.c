@@ -1,6 +1,6 @@
 // Lean compiler output
 // Module: Rv2Pancake
-// Imports: public import Init public meta import Init public import Rv2Pancake.Spec.RiscvSem public import Rv2Pancake.Spec.PancakeSem public import Rv2Pancake.Spec.Equiv public import Rv2Pancake.Spec.ElfLoader public import Rv2Pancake.Base.Lifter public import Rv2Pancake.Base.BaseSound public import Rv2Pancake.Passes.SafePass public import Rv2Pancake.Passes.BlockFusion public import Rv2Pancake.Passes.IfElseRecon public import Rv2Pancake.Passes.WhileRecon public import Rv2Pancake.Passes.DeadRegElim public import Rv2Pancake.Pipeline
+// Imports: public import Init public meta import Init public import Rv2Pancake.Spec.RiscvSem public import Rv2Pancake.Spec.PancakeSem public import Rv2Pancake.Spec.Equiv public import Rv2Pancake.Spec.ElfLoader public import Rv2Pancake.Base.Lifter public import Rv2Pancake.Base.BaseSound public import Rv2Pancake.Passes.SafePass public import Rv2Pancake.Passes.SymCheck public import Rv2Pancake.Passes.BlockFusion public import Rv2Pancake.Passes.IfElseRecon public import Rv2Pancake.Passes.WhileRecon public import Rv2Pancake.Passes.DeadRegElim public import Rv2Pancake.Pipeline public import Rv2Pancake.Spec.MetaSpecs
 #include <lean/lean.h>
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -22,11 +22,13 @@ lean_object* initialize_rv2pancake_Rv2Pancake_Spec_ElfLoader(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Base_Lifter(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Base_BaseSound(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Passes_SafePass(uint8_t builtin);
+lean_object* initialize_rv2pancake_Rv2Pancake_Passes_SymCheck(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Passes_BlockFusion(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Passes_IfElseRecon(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Passes_WhileRecon(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Passes_DeadRegElim(uint8_t builtin);
 lean_object* initialize_rv2pancake_Rv2Pancake_Pipeline(uint8_t builtin);
+lean_object* initialize_rv2pancake_Rv2Pancake_Spec_MetaSpecs(uint8_t builtin);
 void lean_initialize_runtime_module();
 static bool _G_initialized = false;
 LEAN_EXPORT lean_object* initialize_rv2pancake_Rv2Pancake(uint8_t builtin) {
@@ -61,6 +63,9 @@ lean_dec_ref(res);
 res = initialize_rv2pancake_Rv2Pancake_Passes_SafePass(builtin);
 if (lean_io_result_is_error(res)) return res;
 lean_dec_ref(res);
+res = initialize_rv2pancake_Rv2Pancake_Passes_SymCheck(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
 res = initialize_rv2pancake_Rv2Pancake_Passes_BlockFusion(builtin);
 if (lean_io_result_is_error(res)) return res;
 lean_dec_ref(res);
@@ -74,6 +79,9 @@ res = initialize_rv2pancake_Rv2Pancake_Passes_DeadRegElim(builtin);
 if (lean_io_result_is_error(res)) return res;
 lean_dec_ref(res);
 res = initialize_rv2pancake_Rv2Pancake_Pipeline(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_rv2pancake_Rv2Pancake_Spec_MetaSpecs(builtin);
 if (lean_io_result_is_error(res)) return res;
 lean_dec_ref(res);
 return lean_io_result_mk_ok(lean_box(0));

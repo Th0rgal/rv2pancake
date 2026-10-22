@@ -5,8 +5,10 @@ import Rv2Pancake.Spec.ElfLoader
 import Rv2Pancake.Base.Lifter
 import Rv2Pancake.Base.BaseSound
 import Rv2Pancake.Passes.SafePass
+import Rv2Pancake.Passes.SymCheck
 import Rv2Pancake.Passes.BlockFusion
 import Rv2Pancake.Passes.IfElseRecon
 import Rv2Pancake.Passes.WhileRecon
 import Rv2Pancake.Passes.DeadRegElim
 import Rv2Pancake.Pipeline
+import Rv2Pancake.Spec.MetaSpecs

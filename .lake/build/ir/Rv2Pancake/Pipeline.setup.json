@@ -14,6 +14,8 @@
   [["/var/lib/sandboxed-node/work/b9bdef63-907c-466e-a48a-94c4c3293579/rv2pancake/.lake/build/lib/lean/Rv2Pancake/Spec/ElfLoader.olean"]],
   "Rv2Pancake.Passes.WhileRecon":
   [["/var/lib/sandboxed-node/work/b9bdef63-907c-466e-a48a-94c4c3293579/rv2pancake/.lake/build/lib/lean/Rv2Pancake/Passes/WhileRecon.olean"]],
+  "Rv2Pancake.Passes.SymCheck":
+  [["/var/lib/sandboxed-node/work/b9bdef63-907c-466e-a48a-94c4c3293579/rv2pancake/.lake/build/lib/lean/Rv2Pancake/Passes/SymCheck.olean"]],
   "Rv2Pancake.Passes.SafePass":
   [["/var/lib/sandboxed-node/work/b9bdef63-907c-466e-a48a-94c4c3293579/rv2pancake/.lake/build/lib/lean/Rv2Pancake/Passes/SafePass.olean"]],
   "Rv2Pancake.Passes.IfElseRecon":

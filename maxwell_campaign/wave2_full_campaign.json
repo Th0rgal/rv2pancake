@@ -1,0 +1,8 @@
+[
+  {"branch_id": "W1-min-spec-rv64im", "branch_type": "PROVE", "race_group": "wave1-spec", "p": 0.94, "impact": 0.96, "effort_p50": 4200, "effort_p90": 5600},
+  {"branch_id": "W1-base-sound-e2e", "branch_type": "PROVE", "race_group": "wave1-bridge", "p": 0.91, "impact": 0.98, "effort_p50": 4800, "effort_p90": 5900},
+  {"branch_id": "W2-sym-check-algebraic", "branch_type": "PROVE", "race_group": "wave2-sym", "p": 0.93, "impact": 0.95, "effort_p50": 4500, "effort_p90": 5800},
+  {"branch_id": "W2-kstep-superblock-fusion", "branch_type": "PROVE", "race_group": "wave2-kstep", "p": 0.90, "impact": 0.99, "effort_p50": 5100, "effort_p90": 6000},
+  {"branch_id": "W3-metaspecs-dq-gate", "branch_type": "PROVE", "race_group": "wave3-metaspec", "p": 0.95, "impact": 0.97, "effort_p50": 4300, "effort_p90": 5500},
+  {"branch_id": "W3-corpus-n1-n5-silver", "branch_type": "PROBE", "race_group": "wave3-corpus", "p": 0.94, "impact": 0.94, "effort_p50": 4400, "effort_p90": 5700}
+]

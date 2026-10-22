@@ -1,7 +1,7 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["7ab17ed6882fa75c.olean"],
+ {"o": ["3d2ff4cb76ff9705.olean"],
   "m": false,
   "i": "128b2976c2d0cf72.ilean",
   "c": "2e490afe74a637dd.c"},
@@ -16,7 +16,7 @@
     ["imports",
      [["Rv2Pancake.Spec.RiscvSem transitive imports (legacy)",
        "00000000000006bb"],
-      ["Rv2Pancake.Spec.RiscvSem:importAllArts", "346e18e37a4a1693"]]]]],
+      ["Rv2Pancake.Spec.RiscvSem:importAllArts", "189a10727f41461a"]]]]],
   ["libs",
    [["import dynlibs", "00000000000006bb"],
     ["package external libraries", "00000000000006bb"],
@@ -31,4 +31,4 @@
   ["Module.name: Rv2Pancake.Spec.PancakeSem", "910acd92fe915980"],
   ["Package.id?: (some rv2pancake)", "2e59cb835333d208"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "1f2352d8e9d29515"}
+ "depHash": "5cf6f858d80b6cf9"}

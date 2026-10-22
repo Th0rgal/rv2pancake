@@ -1,6 +1,6 @@
 namespace Rv2Pancake.Spec
 
-/-- 64-bit word value used by both RISC-V (RV64I) and Pancake. -/
+/-- 64-bit word value used by both RISC-V (RV64IM) and Pancake. -/
 abbrev Word := UInt64
 
 /-- Register index (0..31 in RISC-V; 0 is hardwired x0 = 0). -/
@@ -36,18 +36,52 @@ theorem readReg_writeReg_diff (regs : RegIdx → Word) (r1 r2 : RegIdx) (v : Wor
       have h12 : (r1 == r2) = false := beq_false_of_ne h
       simp [readReg, writeReg, hb1, hb2, h12]
 
-/-- Binary ALU operations shared across RV64I and Pancake expressions. -/
+/-- Two's complement signed comparison `a <s b` on 64-bit `Word` by flipping MSB (`0x8000000000000000`). -/
+def sltWord (a b : Word) : Bool :=
+  (a ^^^ 0x8000000000000000) < (b ^^^ 0x8000000000000000)
+
+/-- Arithmetic right shift (`sra`) on 64-bit `Word`. -/
+def sraWord (a b : Word) : Word :=
+  let sh := b % 64
+  if sh == 0 then a
+  else
+    let shifted := a >>> sh
+    if (a &&& 0x8000000000000000) != 0 then
+      shifted ||| ((0xFFFFFFFFFFFFFFFF : Word) <<< (64 - sh))
+    else
+      shifted
+
+/-- Sign-extend the lower 32 bits of a 64-bit `Word` to 64 bits (used by RV64 `*w` instructions). -/
+def sext32Word (w : Word) : Word :=
+  let low32 := w &&& 0xFFFFFFFF
+  if (low32 &&& 0x80000000) != 0 then
+    low32 ||| 0xFFFFFFFF00000000
+  else
+    low32
+
+/-- Binary ALU operations shared across RV64IM and Pancake expressions. -/
 inductive BinOp where
   | add
   | sub
+  | mul
+  | divU
+  | remU
   | bitAnd
   | bitOr
   | bitXor
   | shl
   | shr
+  | sar
   | eqOp
   | neOp
   | ltU
+  | ltS
+  | addw
+  | subw
+  | mulw
+  | sllw
+  | srlw
+  | sraw
   deriving DecidableEq, Repr
 
 /-- Evaluate a binary operation on 64-bit words. -/
@@ -55,21 +89,42 @@ def evalBinOp (op : BinOp) (a b : Word) : Word :=
   match op with
   | .add    => a + b
   | .sub    => a - b
+  | .mul    => a * b
+  | .divU   => if b == 0 then 0xFFFFFFFFFFFFFFFF else a / b
+  | .remU   => if b == 0 then a else a % b
   | .bitAnd => a &&& b
   | .bitOr  => a ||| b
   | .bitXor => a ^^^ b
   | .shl    => a <<< (b % 64)
   | .shr    => a >>> (b % 64)
+  | .sar    => sraWord a b
   | .eqOp   => if a == b then 1 else 0
   | .neOp   => if a != b then 1 else 0
   | .ltU    => if a < b then 1 else 0
+  | .ltS    => if sltWord a b then 1 else 0
+  | .addw   => sext32Word ((a &&& 0xFFFFFFFF) + (b &&& 0xFFFFFFFF))
+  | .subw   => sext32Word ((a &&& 0xFFFFFFFF) - (b &&& 0xFFFFFFFF))
+  | .mulw   => sext32Word ((a &&& 0xFFFFFFFF) * (b &&& 0xFFFFFFFF))
+  | .sllw   => sext32Word ((a &&& 0xFFFFFFFF) <<< (b % 32))
+  | .srlw   => sext32Word ((a &&& 0xFFFFFFFF) >>> (b % 32))
+  | .sraw   =>
+    let sh := b % 32
+    let low := a &&& 0xFFFFFFFF
+    let shifted := if sh == 0 then low else
+      if (low &&& 0x80000000) != 0 then
+        (low >>> sh) ||| ((0xFFFFFFFF : Word) <<< (32 - sh))
+      else
+        low >>> sh
+    sext32Word shifted
 
-/-- Branch condition codes in RV64I. -/
+/-- Branch condition codes in RV64I (both unsigned and signed). -/
 inductive BranchCond where
   | beq
   | bne
   | bltu
   | bgeu
+  | blt
+  | bge
   deriving DecidableEq, Repr
 
 def evalBranchCond (c : BranchCond) (a b : Word) : Bool :=
@@ -78,8 +133,10 @@ def evalBranchCond (c : BranchCond) (a b : Word) : Bool :=
   | .bne  => a != b
   | .bltu => a < b
   | .bgeu => !(a < b)
+  | .blt  => sltWord a b
+  | .bge  => !(sltWord a b)
 
-/-- Core RV64I instruction set (decoded from ELF .text segment). -/
+/-- Core RV64IM instruction set (decoded from ELF .text segment). -/
 inductive RVInstr where
   | opImm  (op : BinOp) (rd rs1 : RegIdx) (imm : Word)
   | opReg  (op : BinOp) (rd rs1 rs2 : RegIdx)
@@ -113,7 +170,10 @@ def fetchInstr (code : List (Word × RVInstr)) (pc : Word) : Option RVInstr :=
   | [] => none
   | (addr, ins) :: rest => if pc == addr then some ins else fetchInstr rest pc
 
-/-- Execute one RV64I instruction at `st.pc`. -/
+/-- Mask applied by `JALR` to clear bit 0 of the target address (`~1`). -/
+def jalrMask : Word := 0xFFFFFFFFFFFFFFFE
+
+/-- Execute one RV64IM instruction at `st.pc`. -/
 def execRVInstr (ins : RVInstr) (st : RVState) : RVState :=
   match ins with
   | .opImm op rd rs1 imm =>
@@ -140,7 +200,7 @@ def execRVInstr (ins : RVInstr) (st : RVState) : RVState :=
   | .jal rd targetPc =>
     { st with pc := targetPc, regs := writeReg st.regs rd (st.pc + 4) }
   | .jalr rd rs1 offset =>
-    let nextPc := readReg st.regs rs1 + offset
+    let nextPc := (readReg st.regs rs1 + offset) &&& jalrMask
     { st with pc := nextPc, regs := writeReg st.regs rd (st.pc + 4) }
   | .ecall =>
     { st with pc := 0, halted := true, retVal := readReg st.regs 10 }
@@ -148,7 +208,7 @@ def execRVInstr (ins : RVInstr) (st : RVState) : RVState :=
 /-- Single clocked step of the RISC-V machine. Halts when `pc == 0` or `fetchInstr` is `none`. -/
 def stepRV (prog : ElfProg) (st : RVState) : RVState :=
   if st.halted || st.pc == 0 then
-    { st with halted := true, retVal := readReg st.regs 10 }
+    { st with pc := 0, halted := true, retVal := readReg st.regs 10 }
   else
     match fetchInstr prog.code st.pc with
     | some ins => execRVInstr ins st
@@ -160,7 +220,7 @@ def runRV (prog : ElfProg) (fuel : Nat) (st : RVState) : RVState :=
   | 0 => st
   | fuel' + 1 =>
     if st.halted || st.pc == 0 then
-      { st with halted := true, retVal := readReg st.regs 10 }
+      { st with pc := 0, halted := true, retVal := readReg st.regs 10 }
     else
       runRV prog fuel' (stepRV prog st)
 
