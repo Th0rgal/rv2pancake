@@ -1,0 +1,10 @@
+[
+  {"branch_id": "W0-spec-sem", "branch_type": "PROBE", "race_group": "wave0-spec", "p": 0.92, "impact": 0.95, "effort_p50": 4200, "effort_p90": 5800},
+  {"branch_id": "W0-elf-strip", "branch_type": "PROBE", "race_group": "wave0-elf", "p": 0.94, "impact": 0.88, "effort_p50": 3800, "effort_p90": 5200},
+  {"branch_id": "W0-roundtrip-fuzz", "branch_type": "PROBE", "race_group": "wave0-fuzz", "p": 0.90, "impact": 0.92, "effort_p50": 4500, "effort_p90": 5900},
+  {"branch_id": "W0-rv64-decode", "branch_type": "PROBE", "race_group": "wave0-decode", "p": 0.93, "impact": 0.90, "effort_p50": 4100, "effort_p90": 5600},
+  {"branch_id": "W1-alu-sim", "branch_type": "PROVE", "race_group": "wave1-alu", "p": 0.88, "impact": 0.90, "effort_p50": 4800, "effort_p90": 5900},
+  {"branch_id": "W1-mem-sim", "branch_type": "PROVE", "race_group": "wave1-mem", "p": 0.87, "impact": 0.90, "effort_p50": 4900, "effort_p90": 6000},
+  {"branch_id": "W1-branch-sim", "branch_type": "PROVE", "race_group": "wave1-branch", "p": 0.89, "impact": 0.91, "effort_p50": 4700, "effort_p90": 5800},
+  {"branch_id": "W1-base-master", "branch_type": "PROVE", "race_group": "wave1-master", "p": 0.85, "impact": 0.96, "effort_p50": 5200, "effort_p90": 6000}
+]
