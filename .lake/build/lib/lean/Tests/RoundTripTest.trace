@@ -1,9 +1,9 @@
 {"synthetic": false,
  "schemaVersion": "2025-09-10",
  "outputs":
- {"o": ["71405f75c0108acf.olean"],
+ {"o": ["000e2f9df42ca96b.olean"],
   "m": false,
-  "i": "5dcf1b0e9dc7cca0.ilean",
+  "i": "36cadce4302155ad.ilean",
   "c": "c34416163e51c918.c"},
  "log":
  [{"message":
@@ -18,7 +18,7 @@
       ["Rv2Pancake.Pipeline:importAllArts", "f9d74e07621a6290"],
       ["Rv2Pancake.Spec.MetaSpecs transitive imports (legacy)",
        "9735c1358c0606d5"],
-      ["Rv2Pancake.Spec.MetaSpecs:importAllArts", "c18c2e775788fbbe"]]]]],
+      ["Rv2Pancake.Spec.MetaSpecs:importAllArts", "1ac0cdd125fb0035"]]]]],
   ["libs",
    [["import dynlibs", "00000000000006bb"],
     ["package external libraries", "00000000000006bb"],
@@ -27,10 +27,10 @@
   ["Lean 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc",
    "407ce514b71d5a10"],
   ["/var/lib/sandboxed-node/work/b9bdef63-907c-466e-a48a-94c4c3293579/rv2pancake/Tests/RoundTripTest.lean",
-   "ff67934af4fe1b5f"],
+   "dfad66d81606f2be"],
   ["options", "00000000000006bb"],
   ["isModule: false", "feefd2a0d3a1847e"],
   ["Module.name: Tests.RoundTripTest", "c038b79ba61de734"],
   ["Package.id?: (some rv2pancake)", "2e59cb835333d208"],
   ["Module.leanArgs: #[]", "00000000000006bb"]],
- "depHash": "b18b80e3d780b100"}
+ "depHash": "0b528fbfc89a6919"}

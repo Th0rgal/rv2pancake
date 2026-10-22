@@ -123,30 +123,30 @@ def computeDQMetrics (rawProg optProg : PanProg) : DQMetrics :=
     2. Reserved/illegal opcodes, illegal `funct3`, or illegal `funct7` combinations decode to `none`
        (never silently falling back to `ecall` or `add`). -/
 theorem ms2_illegal_opcode_Zero_rejected :
-    decodeRV64WordOpt 0x1000 0x00000000 = none := by native_decide
+    decodeRV64WordOpt 0x1000 0x00000000 = none := by decide
 
 theorem ms2_illegal_opcode_allOnes_rejected :
-    decodeRV64WordOpt 0x1000 0xFFFFFFFF = none := by native_decide
+    decodeRV64WordOpt 0x1000 0xFFFFFFFF = none := by decide
 
 theorem ms2_illegal_opReg_funct7_rejected :
     -- opcode 0x33 (OP) with funct7 = 0x7F (illegal)
-    decodeRV64WordOpt 0x1000 0xFE208533 = none := by native_decide
+    decodeRV64WordOpt 0x1000 0xFE208533 = none := by decide
 
 theorem ms2_illegal_load_funct3_rejected :
     -- opcode 0x03 (LOAD) with funct3 = 7 (illegal)
-    decodeRV64WordOpt 0x1000 0x0000F503 = none := by native_decide
+    decodeRV64WordOpt 0x1000 0x0000F503 = none := by decide
 
 theorem ms2_illegal_branch_funct3_rejected :
     -- opcode 0x63 (BRANCH) with funct3 = 2 (illegal in RV64I)
-    decodeRV64WordOpt 0x1000 0x0020A063 = none := by native_decide
+    decodeRV64WordOpt 0x1000 0x0020A063 = none := by decide
 
 theorem ms2_valid_mul_accepted :
     -- mul x10, x1, x2 (funct7=1, rs2=2, rs1=1, funct3=0, rd=10, opcode=0x33)
-    decodeRV64WordOpt 0x1000 0x02208533 = some (.opReg .mul 10 1 2) := by native_decide
+    decodeRV64WordOpt 0x1000 0x02208533 = some (.opReg .mul 10 1 2) := by decide
 
 theorem ms2_valid_addw_accepted :
     -- addw x10, x1, x2 (funct7=0, rs2=2, rs1=1, funct3=0, rd=10, opcode=0x3B)
-    decodeRV64WordOpt 0x1000 0x0020853B = some (.opReg .addw 10 1 2) := by native_decide
+    decodeRV64WordOpt 0x1000 0x0020853B = some (.opReg .addw 10 1 2) := by decide
 
 /-- **Meta-Spec 4 (MS4 — Validator Sensitivity & Mutation Rejection)**:
     Prove that our verified pass validators (`symCheckPass.check`, `deadRegElimPass.check`,
@@ -169,29 +169,29 @@ def sampleMutatedLoopProg : PanProg :=
 
 theorem ms4_symCheck_accepts_proposed :
     symCheckPass.check sampleValidProg (symCheckPass.propose sampleValidProg) = true := by
-  native_decide
+  decide
 
 theorem ms4_symCheck_rejects_mutated_reg :
     symCheckPass.check sampleValidProg sampleMutatedRegProg = false := by
-  native_decide
+  decide
 
 theorem ms4_symCheck_rejects_mutated_const :
     symCheckPass.check sampleValidProg sampleMutatedConstProg = false := by
-  native_decide
+  decide
 
 theorem ms4_symCheck_rejects_injected_loop :
     symCheckPass.check sampleValidProg sampleMutatedLoopProg = false := by
-  native_decide
+  decide
 
 theorem ms4_deadRegElim_accepts_selfAssign_removal :
     let p := PanProg.seq (.assign 5 (.var 5)) (.assign 10 (.const 42))
     deadRegElimPass.check p (deadRegElimPass.propose p) = true := by
-  native_decide
+  decide
 
 theorem ms4_deadRegElim_rejects_liveAssign_removal :
     let p := PanProg.seq (.assign 5 (.var 6)) (.assign 10 (.const 42))
     let mutated := PanProg.assign 10 (.const 42)
     deadRegElimPass.check p mutated = false := by
-  native_decide
+  decide
 
 end Rv2Pancake.Spec

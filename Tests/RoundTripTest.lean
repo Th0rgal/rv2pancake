@@ -181,25 +181,25 @@ theorem ms1_roundTrip_silverGcd :
        `pc == addr` checks (`countPcChecks = 0`) for any statically known entry PC! -/
 theorem ms3_zeroAdds_eliminated_aluBasic :
     countZeroAddProg (baseLift progAluBasic) > 0 ∧
-    countZeroAddProg (decompileProg progAluBasic) = 0 := by native_decide
+    countZeroAddProg (decompileProg progAluBasic) = 0 := by decide
 
 theorem ms3_zeroAdds_eliminated_fib10 :
     countZeroAddProg (baseLift progFib10) > 0 ∧
-    countZeroAddProg (decompileProg progFib10) = 0 := by native_decide
+    countZeroAddProg (decompileProg progFib10) = 0 := by decide
 
 theorem ms3_zeroAdds_eliminated_callStackN5 :
     countZeroAddProg (baseLift progCallStackN5) > 0 ∧
-    countZeroAddProg (decompileProg progCallStackN5) = 0 := by native_decide
+    countZeroAddProg (decompileProg progCallStackN5) = 0 := by decide
 
 theorem ms3_superblock_reduces_pcChecks_aluBasic :
     let rawUnrolled := seqRepeat 3 (liftCodeTable progAluBasic.code)
     let optSuper    := superblockBody 3 progAluBasic
-    countPcChecks optSuper < countPcChecks rawUnrolled := by native_decide
+    countPcChecks optSuper < countPcChecks rawUnrolled := by decide
 
 theorem ms3_superblock_reduces_pcChecks_rv64imArith :
     let rawUnrolled := seqRepeat 3 (liftCodeTable progRv64imArith.code)
     let optSuper    := superblockBody 3 progRv64imArith
-    countPcChecks optSuper < countPcChecks rawUnrolled := by native_decide
+    countPcChecks optSuper < countPcChecks rawUnrolled := by decide
 
 theorem ms3_superblock_reduces_pcChecks_fib10 :
     let rawUnrolled := seqRepeat 3 (liftCodeTable progFib10.code)
@@ -214,7 +214,7 @@ theorem ms3_entrySpec_eliminates_all_pcChecks_callStackN5 :
 theorem ms3_entrySpec_eliminates_all_pcChecks_fib10 :
     let rawDisp := liftCodeTable progFib10.code
     let specDisp := pushConstAssign pcVar progFib10.entryPc rawDisp
-    countPcChecks rawDisp == 12 && countPcChecks specDisp == 0 := by native_decide
+    countPcChecks rawDisp == 12 && countPcChecks specDisp == 0 := by decide
 
 /-- Keep backward-compatible aliases for `Main.lean`. -/
 def checkRoundTrip (prog : ElfProg) (fuel : Nat) (expected : Word) : Bool :=
