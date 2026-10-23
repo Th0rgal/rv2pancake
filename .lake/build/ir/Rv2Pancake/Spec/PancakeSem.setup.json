@@ -1,9 +1,0 @@
-{"plugins": [],
- "package": "rv2pancake",
- "options": {},
- "name": "Rv2Pancake.Spec.PancakeSem",
- "isModule": false,
- "importArts":
- {"Rv2Pancake.Spec.RiscvSem":
-  [["/var/lib/sandboxed-node/work/b9bdef63-907c-466e-a48a-94c4c3293579/rv2pancake/.lake/build/lib/lean/Rv2Pancake/Spec/RiscvSem.olean"]]},
- "dynlibs": []}
