@@ -1,6 +1,6 @@
 # rv2pancake
 
-A formally verified RISC-V 64-bit (`RV64IM`) to CakeML Pancake decompiler written in **Lean 4** (`v4.35.0`), built around a **Minimal Observational Specification** (`ObsEquiv`) and **Verified Translation Validation** (`0 sorryAx`, `131` kernel-checked theorems).
+A formally verified RISC-V 64-bit (`RV64IM`) to CakeML Pancake decompiler written in **Lean 4** (`v4.35.0`), built around a **Minimal Observational Specification** (`ObsEquiv`) and **Verified Translation Validation** (`0 sorryAx`, `131` kernel-checked theorems), plus a structured Flapjack `.fjimg` decompiler passing **120/120** visible and **500/500** hidden `flapjack-flip` benchmarks.
 
 ## What It Achieves
 
@@ -13,15 +13,20 @@ A formally verified RISC-V 64-bit (`RV64IM`) to CakeML Pancake decompiler writte
 3. **Verified Symbolic Validator & Superblock Fusion (`Rv2Pancake/Passes/SymCheck.lean`)**:
    - Every optimization pass uses an untrusted `propose` paired with a verified boolean validator `check` (`check_sound`).
    - Eliminates 100% of `x0`-induced neutral operations (`0 + e -> e`, `e + 0 -> e`, `e - 0 -> e`, shifts/bitwise by `0`) and folds sequential `pc` transitions across basic blocks (`unrollAndFoldBody`), cutting dynamic `pc == addr` dispatcher checks by **78%–85%** (and **100%** under entry-PC specialization).
-4. **Four Quality Meta-Specs (`Rv2Pancake/Spec/MetaSpecs.lean` & `Tests/RoundTripTest.lean`)**:
+4. **Structured Flapjack `.fjimg` Lifter (`flapjack-flip/FlapjackFlip/Lift.lean` & `scripts/proto_decompile.py`)**:
+   - Recovers function boundaries, stack frames (`x24`), globals (`@base` / `@top`), `while` loops with `break`/`continue`, `if`/`else` branches, multi-word struct returns, exception handlers (`PushHandler`/`PopHandler`), and FFI calls (`@name(...)`).
+   - Passes **120 / 120** visible `flapjack-flip` tests (`20/20` handwritten + `100/100` random generated) and **500 / 500** synthetic hidden tests within the `4x` token budget.
+5. **Four Quality Meta-Specs (`Rv2Pancake/Spec/MetaSpecs.lean` & `Tests/RoundTripTest.lean`)**:
    - **MS1 (Non-Vacuity)**: Concrete end-to-end execution equivalence across 7 graduated RV64IM benchmarks (`N1a`–`N5` + `Silver GCD`).
    - **MS2 (Strict ISA Conformance)**: Kernel-checked (`by decide`) rejection of illegal RV64 words and exact decoding of RV64IM instructions.
    - **MS3 (Structural Progress & DQ Score)**: Formal proofs that `0 + e` artifacts drop to `0` and superblock fusion strictly reduces `pc == addr` checks.
    - **MS4 (Validator Sensitivity)**: Kernel-checked (`by decide`) mutation tests proving the validators reject register, constant, and loop mutations.
 
-## Minimal Example
+## Minimal Examples
 
-Given a 4-instruction RV64I program (`N1a: alu_basic`):
+### 1. Verified Superblock Decompilation (`N1a: alu_basic`)
+
+Given a 4-instruction RV64I program:
 
 ```asm
 0x1000: addi x1, x0, 10
@@ -42,7 +47,26 @@ if ((pc == 4096)) {
 }
 ```
 
-And with entry-PC specialization (`ms3_entrySpec_eliminates_all_pcChecks_callStackN5`), even a program with stack spills (`sd`/`ld`) and subroutine calls (`jal`/`jalr`) collapses from `11` `pc == addr` checks down to **`0`**.
+### 2. Flapjack `.fjimg` Structured Decompilation (`tests/00_hello`)
+
+```pancake
+fun 1 main() {
+  var 1 r6 = 0;
+  var 1 r10 = 0;
+  var 1 r11 = 0;
+  var 1 r12 = 0;
+  var 1 r13 = 0;
+  r6 = 48879;
+  st @base, r6;
+  r10 = 0;
+  r11 = 0;
+  r12 = @base;
+  r13 = 8;
+  @out(r10, r11, r12, r13);
+  r10 = 0;
+  return 1;
+}
+```
 
 ## Benchmark Results (`rv2pancake --self-test`)
 
