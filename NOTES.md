@@ -1,6 +1,6 @@
 # Progress & Architecture Notes (`flapjack-flip` & `rv2pancake`)
 
-## 1. Current Test Results (`FlapjackFlip/Lift.lean`)
+## 1. Historical ungated Test Results (`FlapjackFlip/Lift.lean`)
 - **Visible test suite (`tests/`)**: **120 / 120 PASS (100%)** via `lake exe flip-check tests`.
   - **20 / 20 hand-written tests PASS**:
     `00_hello`, `01_echo`, `02_arith`, `03_shifts`, `04_compare`,
@@ -28,10 +28,18 @@
 - `scripts/proto_decompile.py`: Python prototype of the structured RV64IM-to-Pancake lifter.
 - `scripts/disasm_tests.py`: Helper to inspect decoded instructions across `tests/*/image.fjimg`.
 
-## 4. What Remains for `scripts/accept.sh` Criterion 2 (`decompile_sound`)
-- Currently `FlapjackFlip/Soundness.lean` has `Refines.refl` and `Equivalent.refl` proved, and `decompile_sound` has a `sorry` placeholder.
+## 4. Flapjack certification boundary
+
+These files are not built by this repository's `lakefile.lean`. The challenge harness and dependencies live in a separate project; no current certified coverage count is established here.
+- `FlapjackFlip/Soundness.lean` contains a proof of `decompile_sound` without a `sorry` placeholder by returning a candidate only when recompilation reproduces the complete input image.
+- This exact-image gate is intentionally conservative: behavior-preserving lifted programs whose compiler layout differs are rejected. The historical visible-suite count above must not be attributed to this gated decompiler.
 - `DecompilerSound decompile` requires:
   `∀ img src, decompile img = .ok src → ∃ img', compile src = .ok img' ∧ Equivalent img img'`.
 - Key facts established:
-  1. `Flapjack.RiscV.NativeSource.compile` is invariant to function and variable names (tested on `00_hello`..`19_early_return`: compiling structurally matching ASTs produces byte-for-byte identical `Image`, where `img' == img` gives `Equivalent.refl img`).
-  2. For general lifted programs where `img' != img`, `Equivalent img img'` requires a proved simulation/equivalence checker `checkEquiv img img' = true → Equivalent img img'` or exact AST synthesis so `compile src == .ok img`.
+  1. `Flapjack.RiscV.NativeSource.compile` is invariant to function and variable names for structurally matching ASTs.
+  2. General lifted programs where `img' != img` still require a proved simulation/equivalence checker `checkEquiv img img' = true → Equivalent img img'` or exact AST synthesis.
+
+## 5. Validation entry point
+- Run `scripts/validate.sh` for the release gate. It builds the project and runs all seven self-test benchmarks.
+- `Tests/AxiomAudit.lean` always audits all production theorem dependencies, including generated theorems, allowing only `propext`, `Classical.choice`, and `Quot.sound`. Benchmark-only `native_decide` lemmas are outside this production proof boundary.
+- When `turbo-lean` is on PATH, validation also checks `Rv2Pancake/Pipeline.lean`. Flapjack is explicitly excluded from core validation; this checkout has no nested acceptance workflow.
