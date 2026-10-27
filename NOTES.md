@@ -30,16 +30,31 @@
 
 ## 4. Flapjack certification boundary
 
-These files are not built by this repository's `lakefile.lean`. The challenge harness and dependencies live in a separate project; no current certified coverage count is established here.
-- `FlapjackFlip/Soundness.lean` contains a proof of `decompile_sound` without a `sorry` placeholder by returning a candidate only when recompilation reproduces the complete input image.
-- This exact-image gate is intentionally conservative: behavior-preserving lifted programs whose compiler layout differs are rejected. The historical visible-suite count above must not be attributed to this gated decompiler.
-- `DecompilerSound decompile` requires:
-  `∀ img src, decompile img = .ok src → ∃ img', compile src = .ok img' ∧ Equivalent img img'`.
-- Key facts established:
-  1. `Flapjack.RiscV.NativeSource.compile` is invariant to function and variable names for structurally matching ASTs.
-  2. General lifted programs where `img' != img` still require a proved simulation/equivalence checker `checkEquiv img img' = true → Equivalent img img'` or exact AST synthesis.
+These files are built separately using the pinned original challenge and its Lean
+4.33.1 dependencies. `scripts/prepare-integration.py` preserves the frozen judge
+and overlays this repository's non-frozen implementation modules.
 
-## 5. Validation entry point
-- Run `scripts/validate.sh` for the release gate. It builds the project and runs all seven self-test benchmarks.
-- `Tests/AxiomAudit.lean` always audits all production theorem dependencies, including generated theorems, allowing only `propext`, `Classical.choice`, and `Quot.sound`. Benchmark-only `native_decide` lemmas are outside this production proof boundary.
-- When `turbo-lean` is on PATH, validation also checks `Rv2Pancake/Pipeline.lean`. Flapjack is explicitly excluded from core validation; this checkout has no nested acceptance workflow.
+- `checkCandidates_sound` proves soundness independently of candidate generation.
+- Candidates are accepted only by exact-image equality or `checkDecoded_sound`.
+- `checkDecoded` permits different encodings of the same modeled instructions,
+  with equal code length, bitmaps and FFI names. It does not handle relocated code.
+- `Simulation.sound` and `EquivalenceCertificate.sound` provide a proved framework
+  for matching executions with different step counts; generating and checking
+  layout-changing certificates remains unfinished.
+- Straight-line reconstruction recovers exact images for five visible cases:
+  hello, echo, arithmetic, FFI configuration and `gen_0_029`. It operates on the
+  lifted binary, never the tests' source text. All returned candidates are checked.
+- Current certified coverage is 5/120 visible; the historical 120/120 and 500/500
+  results above still belong only to the ungated implementation.
+
+## 5. Validation entry points
+
+The core gate remains `scripts/validate.sh`. Integration commands, full release
+thresholds, generated-suite pins, evidence paths and explicit pending milestones
+are documented in [integration/ROADMAP.md](integration/ROADMAP.md).
+
+The integration axiom audit walks all `FlapjackFlip` declarations and the frozen
+`acceptance` root transitively, allowing only `propext`, `Classical.choice` and
+`Quot.sound`. Certificate tests include metadata/instruction/length mutations and
+a kernel-checked unequal-image witness. End-to-end smoke checks also reject a
+corrupted runtime prefix. A passing proof job is not a passing full release gate.

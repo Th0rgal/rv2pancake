@@ -33,7 +33,7 @@ def runSelfTestSuite : IO UInt32 := do
   let ok5 := checkRoundTripAndSuperblock progFib10 3 100 55
   let ok6 := checkRoundTripAndSuperblock progCallStackN5 3 30 100
   let ok7 := checkRoundTripAndSuperblock progSilverGcd 3 40 6
-  IO.println "[rv2pancake v2.0] Maxwell Minimal-Spec + 4 Meta-Specs Verified Decompilation Suite:"
+  IO.println "[rv2pancake core] Verified decompilation benchmark suite:"
   IO.println "  | Benchmark (Level) | MS1 Exec | Ret (a0) | AST Nodes (Raw->Opt) | PC Checks (Raw->Opt) | Zero-Adds (Raw->Opt) | DQ Score |"
   IO.println "  |---|---|---|---|---|---|---|"
   IO.println (formatDQRow "N1a: alu_basic        " progAluBasic 3 10 25)

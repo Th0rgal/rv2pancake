@@ -1,6 +1,8 @@
 import FlapjackFlip.Compile
 import FlapjackFlip.Image
 import FlapjackFlip.Lift
+import FlapjackFlip.StraightLine
+import FlapjackFlip.DecodedCheck
 import FlapjackFlip.Spec
 import RiscvZkvm.Interpreter.Decode
 
@@ -16,19 +18,20 @@ def disassemble (img : Image) : List (Option Instr) :=
     | [b0, b1, b2, b3] => RiscvZkvm.Interpreter.decode (b3 ++ b2 ++ b1 ++ b0)
     | _ => none
 
-/-- Decompile a Flapjack RISC-V binary image back to Pancake source.
+/-- Try untrusted proposals, returning only one certified against the input. -/
+def checkCandidates (img : Image) : List String → Except String String
+  | [] => .error "no candidate passed the equivalence certificate"
+  | src :: rest =>
+    match compile src with
+    | .error _ => checkCandidates img rest
+    | .ok img' =>
+      if decide (img = img') || checkDecoded img img' then .ok src
+      else checkCandidates img rest
 
-The lifted source is returned only when Flapjack recompiles it to an image
-observationally equivalent to the input. Equality is the witness used here;
-any future witness of `Equivalent` can replace it. -/
+/-- Recover source using untrusted proposals and a proved image certificate. -/
 def decompile (img : Image) : Except String String :=
   match Lift.decompileImage (disassemble img) img.bitmaps.length img.ffiNames with
   | .error e => .error e
-  | .ok src =>
-    match compile src with
-    | .ok img' =>
-      if decide (img = img') then .ok src
-      else .error "recompiled image is not identical"
-    | .error e => .error e
+  | .ok src => checkCandidates img ((StraightLine.propose src).toList ++ [src])
 
 end FlapjackFlip

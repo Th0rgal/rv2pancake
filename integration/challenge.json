@@ -1,0 +1,9 @@
+{
+  "url": "https://github.com/dhsorens/flapjack-flip.git",
+  "revision": "e2a1502eacc7ecbd77d264b0561ff407030156de",
+  "visible_tests": 120,
+  "synthetic_seeds": [[42, 100], [999, 340], [777, 60]],
+  "holdout_seed": 20261027,
+  "holdout_tests": 500,
+  "holdout_minimum_percent": 95
+}

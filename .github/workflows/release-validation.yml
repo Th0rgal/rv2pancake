@@ -1,0 +1,35 @@
+name: Full release validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o "$RUNNER_TEMP/elan-init.sh"
+          sh "$RUNNER_TEMP/elan-init.sh" -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Core validation
+        run: bash scripts/validate.sh
+      - name: Prepare pinned challenge
+        run: python3 scripts/prepare-integration.py
+      - uses: actions/cache@v4
+        with:
+          path: .lake/flapjack-integration/.lake
+          key: flapjack-${{ runner.os }}-${{ hashFiles('integration/challenge.json', 'FlapjackFlip/*.lean', 'integration/*.lean') }}
+          restore-keys: flapjack-${{ runner.os }}-
+      - name: Restore dependency proof cache
+        working-directory: .lake/flapjack-integration
+        run: lake exe cache get
+      - name: Full certified coverage gate
+        run: python3 scripts/validate-integration.py release
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-evidence
+          path: .lake/integration-reports/

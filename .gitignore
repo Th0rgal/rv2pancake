@@ -5,3 +5,4 @@
 *.o
 *.hash
 *.trace
+__pycache__/

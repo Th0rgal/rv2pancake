@@ -2,14 +2,14 @@
 
 A RISC-V to Pancake decompiler in Lean 4 (`v4.35.0`), with a proved instruction lifter and validated optimization passes. `scripts/validate.sh` builds the core, runs seven executable benchmarks, and audits the transitive axioms of its production theorems.
 
-The Lake package currently declares version **0.1.0**. The 0.3 roadmap is unfinished. `FlapjackFlip/` is a separate, experimental integration: its source includes an exact-image certification gate, but this package does not build it or include its external compiler dependencies and challenge tests. Historical Flapjack benchmark counts below describe the earlier ungated implementation, not a certified release of this checkout.
+The Lake package currently declares version **0.1.0**. The 0.3 roadmap is unfinished. `FlapjackFlip/` now has a separately pinned integration build and a proof-backed candidate gate. Certified visible coverage is **5/120**, so this is not a 0.3 release. Historical Flapjack counts below describe the earlier ungated implementation. See [the release contract and remaining proof obligations](integration/ROADMAP.md).
 
 ## What It Achieves
 
 1. **Minimal Observational Spec (`Rv2Pancake/Spec/Equiv.lean`)**:
    - External correctness (`ObsEquiv` / `ObsEquivRVPan`) only constrains observable ABI state upon termination (`pc = 0`): the return register `a0` (`x10`) and 64-bit memory `mem : Word -> Word`.
    - The program counter (`pcVar`) and caller-saved temporaries are treated as ghost state at the boundary, allowing multi-instruction superblock fusion without over-constraining the specification.
-2. **Full RV64IM Lifter & Strict ELF64 Loader (`Rv2Pancake/Base/`)**:
+2. **Supported RV64IM Lifter & Strict ELF64 Loader (`Rv2Pancake/Base/`)**:
    - Proves simulation (`liftInstr_regs_sim`, `liftInstr_mem_sim`, `liftInstr_obsEquiv_sim`) across all 31 architectural registers (`x1..x31` with hardwired `x0 = 0`) and RV64IM instructions (`add/sub/mul/divu/remu`, 32-bit `*w` word ops, shifts, signed/unsigned branches, `jal`/`jalr`, `ld`/`sd`, `lui`/`auipc`).
    - Parses ELF64 `PT_LOAD` executable segments (`PF_X`) and rejects illegal opcodes/funct3/funct7 (`decodeRV64WordOpt = none`).
 3. **Verified Symbolic Validator & Superblock Fusion (`Rv2Pancake/Passes/SymCheck.lean`)**:
@@ -17,7 +17,7 @@ The Lake package currently declares version **0.1.0**. The 0.3 roadmap is unfini
    - Eliminates 100% of `x0`-induced neutral operations (`0 + e -> e`, `e + 0 -> e`, `e - 0 -> e`, shifts/bitwise by `0`) and folds sequential `pc` transitions across basic blocks (`unrollAndFoldBody`), cutting dynamic `pc == addr` dispatcher checks by **78%–85%** (and **100%** under entry-PC specialization).
 4. **Structured Flapjack `.fjimg` Lifter (`FlapjackFlip/Lift.lean` & `scripts/proto_decompile.py`)**:
    - Recovers function boundaries, stack frames (`x24`), globals (`@base` / `@top`), `while` loops with `break`/`continue`, `if`/`else` branches, multi-word struct returns, exception handlers (`PushHandler`/`PopHandler`), and FFI calls (`@name(...)`).
-   - Historical results for the ungated implementation: **120/120** visible and **500/500** synthetic tests within the `4x` token budget. These are finite behavioral tests, not proof of arbitrary-input equivalence. The current exact-image gate has not reproduced those coverage results.
+   - Historical results for the ungated implementation: **120/120** visible and **500/500** synthetic tests within the `4x` token budget. These are finite behavioral tests, not proof of arbitrary-input equivalence. The current certified decompiler has not reproduced those coverage results.
 5. **Four Quality Meta-Specs (`Rv2Pancake/Spec/MetaSpecs.lean` & `Tests/RoundTripTest.lean`)**:
    - **MS1 (Non-Vacuity)**: Concrete end-to-end execution equivalence across 7 graduated RV64IM benchmarks (`N1a`–`N5` + `Silver GCD`).
    - **MS2 (Strict ISA Conformance)**: Kernel-checked (`by decide`) rejection of illegal RV64 words and exact decoding of RV64IM instructions.
@@ -96,6 +96,14 @@ Production proofs under `Rv2Pancake` are audited against the allowlist `propext`
 
 If `turbo-lean` is on PATH, validation additionally checks `Rv2Pancake/Pipeline.lean`. Its failure fails validation. Without it, the mandatory Lean axiom audit still runs. This integration does not upgrade turbo-lean itself.
 
-Remaining 0.3 work: integrate the external Flapjack toolchain and reproducible challenge tests, recover certified coverage beyond exact image equality, and measure performance on larger unseen programs. See [NOTES.md](NOTES.md).
+The integration uses the frozen challenge's Lean 4.33.1 toolchain independently of the core's Lean 4.35.0:
+
+```bash
+python3 scripts/validate-integration.py proof     # proofs and certified smoke cases
+python3 scripts/validate-integration.py coverage  # measure all corpus results
+bash scripts/validate-release.sh                 # strict; currently fails coverage
+```
+
+The gate accepts exact images or equal-length images with equal decoded instructions and metadata. The general stuttering simulation theorem is proved, but a certificate generator for different control-flow and stack layouts remains unfinished. Integration proof CI does not claim release readiness. The manual full-release workflow requires 120/120 visible, 500/500 historical synthetic, and ≥95% of a separate 500-case generated suite. See [the roadmap](integration/ROADMAP.md) for all pending work.
 
 The verified adjacent-write cleanup reduces optimized AST sizes on every current benchmark: N1a 89→74, N1b 246→216, and N5 287→281, for example. It preserves dependent updates such as two increments and memory operations; these are covered by kernel-checked regression tests. AST reductions are measured; runtime speedups have not been established.
