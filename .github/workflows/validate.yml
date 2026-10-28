@@ -14,5 +14,10 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o "$RUNNER_TEMP/elan-init.sh"
           sh "$RUNNER_TEMP/elan-init.sh" -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Install & cache turbo-lean
+        uses: Th0rgal/turbo-lean@1949eaac9d790d1dd13e357d45aad010fa0be644
+        with:
+          project-dir: "."
+          command: cache-only
       - name: Build, audit axioms and run benchmarks
         run: scripts/validate.sh
